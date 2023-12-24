@@ -43,7 +43,64 @@
   const bodyParser = require('body-parser');
   
   const app = express();
-  
+  let todos = [];
   app.use(bodyParser.json());
+
+  app.get('/todos', (req, res) => {
+    res.status(200).json(todos);
+  });
   
+  app.get('/todos/:todoId', (req, res) => {
+    const todoId = parseInt(req.params.todoId);
+    const result = todos.find(todo => todo.id === todoId);
+    if(!result)
+    {
+      res.status(404).send();
+      return ;
+    }
+    res.status(200).json(result);
+  });
+
+  app.put('/todos/:todoId', (req, res) => {
+    const todoId = parseInt(req.params.todoId);
+    const resultIndex = todos.findIndex(todo => todo.id === todoId);
+    if(-1 === resultIndex)
+    {
+      res.status(404).json({msg : "not found"});
+    }
+    todos[resultIndex].title = req.body.title;
+    todos[resultIndex].description = req.body.description;
+    res.status(200).json(todos[resultIndex]);
+  });
+
+  app.delete('/todos/:todoId', (req, res) => {
+    const todoId = parseInt(req.params.todoId);
+    const result = todos.findIndex(todo => todo.id === todoId);
+    if(-1 === result)
+    {
+      res.status(404).send();
+      return ;
+    }
+    todos.splice(result,1);
+    res.status(200).send();
+  });
+
+  app.post('/todos', (req, res) => {
+    console.log("inside post");
+    const newTodo = {
+      title: req.body.title,
+      id: Math.floor(Math.random()*1000000),
+      description: req.body.description
+    };
+    todos.push(newTodo);
+    res.status(201).json(newTodo);
+
+  });
+
+  // for all other routes, return 404s
+  app.use((req, res, next) => {
+    res.status(404).json({msg: "no url found"});
+  });
+
+  // app.listen(3001, () => {console.log("listening")});
   module.exports = app;
